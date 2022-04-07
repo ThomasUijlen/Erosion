@@ -4,29 +4,32 @@ using Godot.Collections;
 
 public class HeightmapTerrain : Spatial
 {
-    private Dictionary<Vector2, float> terrainGrid;
+    public Dictionary<Vector2, float> terrainGrid;
 
     [Export]
-    private int mapSize = 100;
+    public int mapSize = 100;
+
+    [Export]
+    private MAP_TYPE mapType = MAP_TYPE.NOISE;
 
     [Export]
     private int noiseSeed = 0;
     [Export]
     private float frequency = 1.0f;
     [Export]
-    private Texture heightmap;
+    private Image heightmap;
 
     private enum MAP_TYPE {
         NOISE,
         HEIGHT_MAP
     };
 
-    [Export]
-    private MAP_TYPE mapType = MAP_TYPE.NOISE;
-
     public override void _Ready()
     {
         CreateGrid();
+        GenerateMap();
+        GetNode("ErosionSettings").Call("SimulateErosion",this);
+        UpdateMesh();
     }
 
     private void CreateGrid() {
@@ -42,12 +45,64 @@ public class HeightmapTerrain : Spatial
     private void GenerateMap() {
         switch(mapType) {
             case MAP_TYPE.NOISE:
-
+            ApplyNoise();
             break;
 
             case MAP_TYPE.HEIGHT_MAP:
-
+            ApplyHeightmap();
             break;
         }
+    }
+
+    private void ApplyNoise() {
+        OpenSimplexNoise noise = new OpenSimplexNoise();
+        noise.Seed = noiseSeed;
+
+        float lowestValue = -1.0f;
+
+        for(int x = 0; x < mapSize; x++) {
+            for(int y = 0; y < mapSize; y++) {
+                float n = (noise.GetNoise2d(x*frequency,y*frequency) + 1.0f)/2.0f;
+                terrainGrid[new Vector2(x,y)] = n;
+
+                if(n < lowestValue || lowestValue == -1.0f) {
+                    lowestValue = n;
+                }
+
+            }
+        }
+
+        //Lower everything so the lowest point is 0.0
+        for(int x = 0; x < mapSize; x++) {
+            for(int y = 0; y < mapSize; y++) {
+                terrainGrid[new Vector2(x,y)] -= lowestValue;
+            }
+        }
+    }
+
+    private void ApplyHeightmap() {
+        int mapWidth = heightmap.GetWidth();
+        int mapHeight = heightmap.GetHeight();
+        heightmap.Lock();
+
+        for(int x = 0; x < mapSize; x++) {
+            for(int y = 0; y < mapSize; y++) {
+                Vector2 coord = new Vector2(x,y);
+                terrainGrid[coord] = heightmap.GetPixel(Mathf.RoundToInt(x*mapWidth/mapSize), Mathf.RoundToInt(y*mapHeight/mapSize)).r;
+            }
+        }
+
+        heightmap.Unlock();
+    }
+
+    public bool IsValid(Vector2 coord) {
+        return coord.x >= 0f && coord.y >= 0f && coord.x < mapSize && coord.y < mapSize;
+    }
+
+    
+
+    private void UpdateMesh() {
+        Node mesh = GetNode("TerrainMesh");
+        mesh.Call("constructMesh", terrainGrid, mapSize);
     }
 }

@@ -1,0 +1,13 @@
+[remap]
+
+importer="image"
+type="Image"
+path="res://.import/SmallMountain.png-bdfc70dfaa005c0d2a8a940e04d29752.image"
+
+[deps]
+
+source_file="res://Assets/Heightmaps/SmallMountain.png"
+dest_files=[ "res://.import/SmallMountain.png-bdfc70dfaa005c0d2a8a940e04d29752.image" ]
+
+[params]
+

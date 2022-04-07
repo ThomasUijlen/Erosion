@@ -11,6 +11,7 @@ config_version=4
 [application]
 
 config/name="Erosion"
+run/main_scene="res://Terrain/HeightmapTerrain.tscn"
 config/icon="res://icon.png"
 
 [physics]

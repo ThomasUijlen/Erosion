@@ -1,10 +1,62 @@
-[gd_scene load_steps=3 format=2]
+[gd_scene load_steps=7 format=2]
 
 [ext_resource path="res://Terrain/TerrainMesh.gd" type="Script" id=1]
 [ext_resource path="res://Terrain/HeightmapTerrain.cs" type="Script" id=2]
+[ext_resource path="res://Assets/Heightmaps/SmallMountain.png" type="Image" id=3]
+[ext_resource path="res://Terrain/Erosion/Erosion.cs" type="Script" id=4]
+
+[sub_resource type="Shader" id=1]
+code = "// NOTE: Shader automatically converted from Godot Engine 3.4.3.stable.mono's SpatialMaterial.
+
+shader_type spatial;
+render_mode blend_mix,depth_draw_opaque,cull_back,diffuse_burley,specular_schlick_ggx;
+uniform vec4 grass : hint_color;
+uniform vec4 dirt : hint_color;
+uniform vec4 stone : hint_color;
+uniform vec4 snow : hint_color;
+
+varying vec3 color;
+void vertex() {
+	color = dirt.rgb;
+	
+	color = mix(color, stone.rgb, clamp((VERTEX.y-15f)/10f,0,1));
+	color = mix(color, snow.rgb, clamp((VERTEX.y-35f)/5f,0,1));
+	
+	if(dot(vec3(0,-1,0),NORMAL) < -0.9 && VERTEX.y <= 20f) {
+		color = grass.rgb;
+	}
+}
+
+void fragment() {
+	ALBEDO = color;
+}
+"
+
+[sub_resource type="ShaderMaterial" id=2]
+shader = SubResource( 1 )
+shader_param/grass = Color( 0.294118, 0.498039, 0.25098, 1 )
+shader_param/dirt = Color( 0.482353, 0.337255, 0.243137, 1 )
+shader_param/stone = Color( 0.337255, 0.337255, 0.337255, 1 )
+shader_param/snow = Color( 0.960784, 0.960784, 0.960784, 1 )
 
 [node name="HeightmapTerrain" type="Spatial"]
 script = ExtResource( 2 )
+heightmap = ExtResource( 3 )
 
-[node name="MeshInstance" type="MeshInstance" parent="."]
+[node name="TerrainMesh" type="MeshInstance" parent="."]
+material_override = SubResource( 2 )
 script = ExtResource( 1 )
+intensity = 50.0
+
+[node name="Camera" type="Camera" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.38839, 8.80173 )
+
+[node name="DirectionalLight" type="DirectionalLight" parent="."]
+transform = Transform( 0.839582, 0.386576, -0.381656, -0.124297, 0.820631, 0.557777, 0.528822, -0.420861, 0.737037, 0, 0, 0 )
+shadow_enabled = true
+
+[node name="ErosionSettings" type="Node" parent="."]
+script = ExtResource( 4 )
+accelerationModifier = 0.1
+soilCapacityModifier = 0.01
+erosionModifier = 0.005
