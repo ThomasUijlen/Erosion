@@ -41,6 +41,8 @@ shader_param/snow = Color( 0.960784, 0.960784, 0.960784, 1 )
 
 [node name="HeightmapTerrain" type="Spatial"]
 script = ExtResource( 2 )
+dropletsPerSecond = 1000
+mapSize = 400
 heightmap = ExtResource( 3 )
 
 [node name="TerrainMesh" type="MeshInstance" parent="."]
@@ -57,6 +59,8 @@ shadow_enabled = true
 
 [node name="ErosionSettings" type="Node" parent="."]
 script = ExtResource( 4 )
+maxLifetime = 30
 accelerationModifier = 0.1
 soilCapacityModifier = 0.01
-erosionModifier = 0.005
+erosionModifier = 0.05
+sedimentDropSpeed = 0.5

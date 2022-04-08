@@ -5,13 +5,17 @@ export var intensity = 1.0
 
 var surfaceTool = SurfaceTool.new()
 
+var finishedUpdating = true
+
 func constructMesh(terrainGrid, mapSize):
+	if !finishedUpdating: return
+	
 	surfaceTool = SurfaceTool.new()
 	surfaceTool.begin(Mesh.PRIMITIVE_TRIANGLES)
 	surfaceTool.add_smooth_group(true)
 	
 	generateVertices(terrainGrid, mapSize)
-	generateMesh()
+	call("generateMesh")
 
 func generateVertices(terrainGrid, mapSize):
 	for coord1 in terrainGrid:
@@ -45,3 +49,5 @@ func generateMesh():
 	surfaceTool.index()
 	surfaceTool.generate_normals(false)
 	mesh = surfaceTool.commit()
+	
+	finishedUpdating = true

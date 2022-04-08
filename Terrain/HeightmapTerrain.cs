@@ -5,6 +5,8 @@ using Godot.Collections;
 public class HeightmapTerrain : Spatial
 {
     public Dictionary<Vector2, float> terrainGrid;
+    [Export]
+    private int dropletsPerSecond = 1;
 
     [Export]
     public int mapSize = 100;
@@ -24,12 +26,40 @@ public class HeightmapTerrain : Spatial
         HEIGHT_MAP
     };
 
+    //Threading
+    private Thread thread;
+    private Semaphore semaphore = new Semaphore();
+
+
     public override void _Ready()
     {
         CreateGrid();
         GenerateMap();
-        GetNode("ErosionSettings").Call("SimulateErosion",this);
-        UpdateMesh();
+        
+        thread = new Thread();
+        thread.Start(this, "ThreadFunction", "data", Thread.Priority.High);
+        semaphore.Post();
+    }
+
+    int dropletsToRun = 0;
+    ulong lastRunTime = 0;
+    public void ThreadFinished() {
+        ulong currentTime = OS.GetTicksMsec();
+        float timeElapsed = currentTime - lastRunTime;
+        lastRunTime = currentTime;
+
+        dropletsToRun = Mathf.RoundToInt(dropletsPerSecond*timeElapsed/1000);
+        semaphore.Post();
+    }
+
+    public void ThreadFunction(String data) {
+        while(true) {
+            semaphore.Wait();
+            GD.Print("Thread start!");
+            GetNode("ErosionSettings").Call("SimulateErosion",this, dropletsToRun);
+            UpdateMesh();
+            CallDeferred("ThreadFinished");
+        }
     }
 
     private void CreateGrid() {
