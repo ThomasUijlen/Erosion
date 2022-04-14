@@ -32,15 +32,22 @@ public class HeightmapTerrain : Spatial
     private Thread thread;
     private Semaphore semaphore = new Semaphore();
 
+    private bool threadActive = false;
+
 
     public override void _Ready()
     {
         CreateGrid();
         GenerateMap();
         
+        threadActive = true;
         thread = new Thread();
         thread.Start(this, "ThreadFunction", "data", Thread.Priority.High);
         semaphore.Post();
+    }
+
+    public void StopThread() {
+        threadActive = false;
     }
 
     int dropletsToRun = 0;
@@ -50,18 +57,19 @@ public class HeightmapTerrain : Spatial
         float timeElapsed = currentTime - lastRunTime;
         lastRunTime = currentTime;
 
-        dropletsToRun = Mathf.RoundToInt(dropletsPerSecond*timeElapsed/1000);
         semaphore.Post();
     }
 
     public void ThreadFunction(String data) {
-        while(true) {
+        while(threadActive) {
             semaphore.Wait();
             GD.Print("Thread start!");
-            GetNode("ErosionSettings").Call("SimulateErosion",this, dropletsToRun);
+            GetNode("ErosionSettings").Call("SimulateErosion",this, dropletsPerSecond);
             UpdateMesh();
             CallDeferred("ThreadFinished");
         }
+
+        CallDeferred("_Ready");
     }
 
     private void CreateGrid() {
