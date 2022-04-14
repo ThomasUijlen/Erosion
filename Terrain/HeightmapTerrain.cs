@@ -10,6 +10,8 @@ public class HeightmapTerrain : Spatial
 
     [Export]
     public int mapSize = 100;
+    [Export]
+    public int intensity = 1;
 
     [Export]
     private MAP_TYPE mapType = MAP_TYPE.NOISE;
@@ -93,7 +95,7 @@ public class HeightmapTerrain : Spatial
         for(int x = 0; x < mapSize; x++) {
             for(int y = 0; y < mapSize; y++) {
                 float n = (noise.GetNoise2d(x*frequency,y*frequency) + 1.0f)/2.0f;
-                terrainGrid[new Vector2(x,y)] = n;
+                terrainGrid[new Vector2(x,y)] = n * intensity;
 
                 if(n < lowestValue || lowestValue == -1.0f) {
                     lowestValue = n;
@@ -118,7 +120,7 @@ public class HeightmapTerrain : Spatial
         for(int x = 0; x < mapSize; x++) {
             for(int y = 0; y < mapSize; y++) {
                 Vector2 coord = new Vector2(x,y);
-                terrainGrid[coord] = heightmap.GetPixel(Mathf.RoundToInt(x*mapWidth/mapSize), Mathf.RoundToInt(y*mapHeight/mapSize)).r;
+                terrainGrid[coord] = heightmap.GetPixel(Mathf.RoundToInt(x*mapWidth/mapSize), Mathf.RoundToInt(y*mapHeight/mapSize)).r * intensity;
             }
         }
 

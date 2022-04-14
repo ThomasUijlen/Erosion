@@ -15,8 +15,7 @@ public class Erosion : Node
 
     [Export]
     public float inertia = 0.05f;
-    [Export]
-    public float soilCapacityModifier = 1.0f;
+
     [Export]
     public float erosionModifier = 1.0f;
     [Export]
@@ -80,21 +79,17 @@ public class Erosion : Node
 
 
             // remove sediment from old position based on speed and amount of water
-            float soilCapacity = Mathf.Max((droplet.speed + droplet.waterAmount) * soilCapacityModifier, 0f);
-            float sedimentToRemove = (droplet.waterAmount) * erosionModifier * 0.1f;
+            float sedimentToErode = (droplet.waterAmount) * erosionModifier;
 
-            if(sedimentToRemove + droplet.sediment > soilCapacity) sedimentToRemove = soilCapacity - droplet.sediment;
             // if(previousHeight - sedimentToRemove < currentHeight) sedimentToRemove = currentHeight - previousHeight;
-            heightmap.terrainGrid[droplet.GetCoord()] -= sedimentToRemove;
-            droplet.sediment += sedimentToRemove;
+            heightmap.terrainGrid[oldCoord] -= sedimentToErode;
+            droplet.sediment += sedimentToErode;
 
 
-            // deposit soil if oversaturated
-            if(droplet.sediment > soilCapacity) {
-                float excessSoil = (droplet.sediment - soilCapacity);
-                droplet.sediment -= excessSoil;
-                heightmap.terrainGrid[droplet.GetCoord()] += excessSoil;
-            }
+            // deposit soil
+            float sedimentToDrop = (droplet.sediment*sedimentDropSpeed);
+            droplet.sediment -= sedimentToDrop;
+            heightmap.terrainGrid[droplet.GetCoord()] += sedimentToDrop;
 
             // GD.Print("---");
             // GD.Print(surfaceNormal);

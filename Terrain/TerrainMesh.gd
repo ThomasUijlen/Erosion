@@ -1,7 +1,6 @@
 extends MeshInstance
 
 export var tileSize = 1.0
-export var intensity = 1.0
 
 var surfaceTool = SurfaceTool.new()
 
@@ -42,7 +41,7 @@ func validCoord(coord,terrainGrid, mapSize):
 	return coord.x >= 0 and coord.y >= 0 and coord.x < mapSize and coord.y < mapSize
 
 func addVertex(terrainGrid, coord):
-	var vertex = Vector3(coord.x*tileSize, terrainGrid[coord]*intensity, coord.y*tileSize)
+	var vertex = Vector3(coord.x*tileSize, terrainGrid[coord], coord.y*tileSize)
 	surfaceTool.add_vertex(vertex)
 
 func generateMesh():
